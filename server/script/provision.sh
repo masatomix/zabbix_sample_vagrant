@@ -25,7 +25,9 @@ sudo docker run --name mysql-server -t \
      -e MYSQL_USER="zabbix" \
      -e MYSQL_PASSWORD="zabbix" \
      -e MYSQL_ROOT_PASSWORD="zabbix" \
-     -d mysql:5.7
+     -d mysql:5.7 \
+     --character-set-server=utf8mb4 \
+     --collation-server=utf8mb4_unicode_ci
 
 sudo docker run --restart=always --name zabbix-java-gateway -d zabbix/zabbix-java-gateway:latest
 
@@ -41,6 +43,8 @@ sudo docker run --name zabbix-server-mysql -t \
      -p 10051:10051 \
      -d zabbix/zabbix-server-mysql:latest
 
+sudo docker build --no-cache  -t zabbix/zabbix-web-nginx-mysql_ipa:ubuntu-latest /vagrant/
+
 sudo docker run --name zabbix-web-nginx-mysql -t \
      --restart=always \
      -e DB_SERVER_HOST="mysql-server" \
@@ -53,7 +57,8 @@ sudo docker run --name zabbix-web-nginx-mysql -t \
      --link mysql-server:mysql \
      --link zabbix-server-mysql:zabbix-server \
      -p 80:80 \
-     -d zabbix/zabbix-web-nginx-mysql:latest
+     -d zabbix/zabbix-web-nginx-mysql_ipa:ubuntu-latest
+
 
 # install zabbix agent
 wget http://repo.zabbix.com/zabbix/3.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_3.4-1+xenial_all.deb
