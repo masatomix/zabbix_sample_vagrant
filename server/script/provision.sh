@@ -18,47 +18,11 @@ sudo add-apt-repository \
 sudo apt-get update
 sudo apt-get install  -y docker-ce
 
-# create zabbix container
-sudo docker run --name mysql-server -t \
-     --restart=always \
-     -e MYSQL_DATABASE="zabbix" \
-     -e MYSQL_USER="zabbix" \
-     -e MYSQL_PASSWORD="zabbix" \
-     -e MYSQL_ROOT_PASSWORD="zabbix" \
-     -d mysql:5.7 \
-     --character-set-server=utf8mb4 \
-     --collation-server=utf8mb4_unicode_ci
+sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
-sudo docker run --restart=always --name zabbix-java-gateway -d zabbix/zabbix-java-gateway:latest
-
-sudo docker run --name zabbix-server-mysql -t \
-     --restart=always \
-     -e DB_SERVER_HOST="mysql-server" \
-     -e MYSQL_DATABASE="zabbix" \
-     -e MYSQL_USER="zabbix" \
-     -e MYSQL_PASSWORD="zabbix" \
-     -e MYSQL_ROOT_PASSWORD="zabbix" \
-     --link mysql-server:mysql \
-     --link zabbix-java-gateway:zabbix-java-gateway \
-     -p 10051:10051 \
-     -d zabbix/zabbix-server-mysql:latest
-
-sudo docker build --no-cache  -t zabbix/zabbix-web-nginx-mysql_ipa:ubuntu-latest /vagrant/
-
-sudo docker run --name zabbix-web-nginx-mysql -t \
-     --restart=always \
-     -e DB_SERVER_HOST="mysql-server" \
-     -e MYSQL_DATABASE="zabbix" \
-     -e MYSQL_USER="zabbix" \
-     -e MYSQL_PASSWORD="zabbix" \
-     -e MYSQL_ROOT_PASSWORD="zabbix" \
-     -e ZBX_SERVER_HOST="zabbix-server" \
-     -e PHP_TZ="Asia/Tokyo" \
-     --link mysql-server:mysql \
-     --link zabbix-server-mysql:zabbix-server \
-     -p 80:80 \
-     -d zabbix/zabbix-web-nginx-mysql_ipa:ubuntu-latest
-
+cd /vagrant/
+sudo docker-compose up -d 
 
 # install zabbix agent
 wget http://repo.zabbix.com/zabbix/3.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_3.4-1+xenial_all.deb
