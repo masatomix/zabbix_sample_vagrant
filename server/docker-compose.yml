@@ -1,8 +1,7 @@
 version: '2'
 services:
-  db:
-    # build: ./mysql
-    # image: my-mysql
+
+  mysql-server:
     image: mysql:5.7
     command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
     environment:
@@ -10,41 +9,35 @@ services:
       - MYSQL_USER=zabbix
       - MYSQL_PASSWORD=zabbix
       - MYSQL_ROOT_PASSWORD=zabbix
-#    volumes:
-#      - ./mysql/init/:/docker-entrypoint-initdb.d/
-#    network_mode: "bridge"
-
-
+  
   zabbix-java-gateway:
     image: zabbix/zabbix-java-gateway:latest
-
 
   zabbix-server-mysql:
     image: zabbix/zabbix-server-mysql:latest
     depends_on:
-      - db
+      - mysql-server
       - zabbix-java-gateway
     environment:
-      - DB_SERVER_HOST=db
+      - DB_SERVER_HOST=mysql-server
       - MYSQL_DATABASE=zabbix
       - MYSQL_USER=zabbix
       - MYSQL_PASSWORD=zabbix
       - MYSQL_ROOT_PASSWORD=zabbix
     links:
-      - db:mysql
+      - mysql-server:mysql
       - zabbix-java-gateway:zabbix-java-gateway
     ports:
       - 10051:10051
 
   zabbix-web-nginx-mysql:
-    build: ./nginx
-    image: zabbix/zabbix-web-nginx-mysql_ipa:ubuntu-latest
+    build: ./nginx/
     depends_on:
-      - db
+      - mysql-server
       - zabbix-server-mysql
       - zabbix-java-gateway
     environment:
-      - DB_SERVER_HOST=db
+      - DB_SERVER_HOST=mysql-server
       - MYSQL_DATABASE=zabbix
       - MYSQL_USER=zabbix
       - MYSQL_PASSWORD=zabbix
@@ -52,7 +45,7 @@ services:
       - ZBX_SERVER_HOST=zabbix-server
       - PHP_TZ="Asia/Tokyo"
     links:
-      - db:mysql
+      - mysql-server:mysql
       - zabbix-server-mysql:zabbix-server
     ports:
       - 80:80
